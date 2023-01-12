@@ -6,6 +6,12 @@ const UserSchema = new mongoose.Schema(
     firstName: String,
     lastName: String,
     email: String,
+    id: Number,
+    username: {
+      // will only be accessible by admin to login by - sponsors and students will have to login with ID
+      type: String,
+      default: "",
+    },
     profilePic: {
       type: String,
       default: "",
