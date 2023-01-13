@@ -267,7 +267,7 @@ router.get("/get-clubs", (req, res) => {
 
           clubs.forEach((club) => {
             const isMember = club.members.find(
-              (member) => member.user._id === user._id
+              (member) => member.user == userId
             );
 
             if (isMember) {
