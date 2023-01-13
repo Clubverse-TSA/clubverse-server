@@ -23,9 +23,9 @@ mongoose
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-app.use(`/api/v${VERSION}/users`, users);
-app.use(`/api/v${VERSION}/schools`, schools);
-app.use(`/api/v${VERSION}/clubs`, clubs);
+app.use(`/api/users`, users);
+app.use(`/api/schools`, schools);
+app.use(`/api/clubs`, clubs);
 
 app.get("/", (req, res) => res.send("Clubverse API v" + VERSION));
 

@@ -6,19 +6,17 @@ const UserSchema = new mongoose.Schema(
     firstName: String,
     lastName: String,
     email: String,
-    id: Number,
-    username: {
-      // will only be accessible by admin to login by - sponsors and students will have to login with ID
-      type: String,
-      default: "",
-    },
+    username: String,
     profilePic: {
       type: String,
       default: "",
     },
     password: String,
     grade: Number,
-    type: String,
+    type: {
+      type: String,
+      enum: ["student", "sponsor", "admin"],
+    },
     school: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "School",
