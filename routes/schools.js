@@ -227,6 +227,7 @@ router.post("/upload-user-db", (req, res) => {
 
 router.get("/get-clubs", (req, res) => {
   const { userId } = req.query;
+
   User.findOne({ _id: userId }, (err, user) => {
     if (err) {
       return res.json({
@@ -241,6 +242,7 @@ router.get("/get-clubs", (req, res) => {
         message: "Error: Server Error",
       });
     }
+
     Club.find({ school: user.school })
       .populate("sponsors")
       .exec((err, clubs) => {
@@ -264,7 +266,11 @@ router.get("/get-clubs", (req, res) => {
           const otherClubs = [];
 
           clubs.forEach((club) => {
-            if (club.members.includes(user._id)) {
+            const isMember = club.members.find(
+              (member) => member.user._id === user._id
+            );
+
+            if (isMember) {
               myClubs.push(club);
             } else {
               if (!club.pending) {
@@ -286,9 +292,10 @@ router.get("/get-clubs", (req, res) => {
             if (club.sponsors.includes(user._id)) {
               myClubs.push(club);
             } else {
-              if (!club.pending) {
-                otherClubs.push(club);
-              }
+              // if (!club.pending) {
+              //   otherClubs.push(club);
+              // }
+              // Sponsors can only see their own clubs
             }
           });
 
@@ -298,26 +305,27 @@ router.get("/get-clubs", (req, res) => {
             otherClubs,
           });
         } else if (user.type === "admin") {
-          const myClubs = []; //(all)
+          const allClubs = []; //(all)
           const pendingClubs = []; //(pending)
 
           clubs.forEach((club) => {
             if (club.pending) {
-              myClubs.push(pendingClubs);
+              pendingClubs.push(club);
             } else {
               if (!club.pending) {
-                otherClubs.push(club);
+                allClubs.push(club);
               }
             }
           });
 
           return res.json({
             success: true,
-            myClubs,
+            allClubs,
             otherClubs,
           });
         }
       });
   });
 });
+
 module.exports = router;
