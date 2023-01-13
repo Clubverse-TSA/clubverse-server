@@ -118,21 +118,13 @@ router.get("/verify", (req, res) => {
 router.get("/logout", (req, res) => {
   const { token } = req.query;
 
-  UserSession.deleteOne({ _id: token }, (err, session) => {
+  UserSession.deleteOne({ _id: token }, (err) => {
     if (err) {
       return res.json({
         success: false,
         message: "server err",
       });
     }
-
-    if (!session) {
-      return res.json({
-        success: false,
-        message: "invalid token",
-      });
-    }
-
     return res.json({
       success: true,
       message: "logged out",
@@ -174,18 +166,11 @@ router.post("/delete", (req, res) => {
           });
         }
 
-        User.deleteOne({ _id: deleteThis._id }, (err, user) => {
+        User.deleteOne({ _id: deleteThis._id }, (err) => {
           if (err) {
             return res.json({
               success: false,
               message: "Error: Server Error",
-            });
-          }
-
-          if (!user) {
-            return res.json({
-              success: false,
-              message: "User doesn't exist",
             });
           }
 

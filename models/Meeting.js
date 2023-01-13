@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 
-const ClubSchema = new mongoose.Schema(
+const MeetingSchema = new mongoose.Schema(
   {
     date: Date,
+    club: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Club",
+    },
     attendance: [
       {
         user: {
@@ -19,4 +23,4 @@ const ClubSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Club", ClubSchema);
+module.exports = mongoose.model("Meeting", MeetingSchema);

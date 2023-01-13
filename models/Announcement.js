@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ClubSchema = new mongoose.Schema(
+const AnnouncementSchema = new mongoose.Schema(
   {
     message: String,
     club: {
@@ -13,8 +13,8 @@ const ClubSchema = new mongoose.Schema(
     },
     tags: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Tag",
+        color: String,
+        name: String,
       },
     ],
     dateReminder: {
@@ -26,4 +26,4 @@ const ClubSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Club", ClubSchema);
+module.exports = mongoose.model("Announcement", AnnouncementSchema);

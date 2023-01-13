@@ -4,6 +4,10 @@ const ClubSchema = new mongoose.Schema(
   {
     name: String,
     description: String,
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+    },
     importantDates: [
       {
         date: Date,
@@ -31,7 +35,8 @@ const ClubSchema = new mongoose.Schema(
         },
         role: {
           type: String,
-          enum: ["Officer", "Member"],
+          enum: ["officer", "member"],
+          default: "member",
         },
       },
     ],
@@ -65,6 +70,12 @@ const ClubSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    tags: [
+      {
+        color: String,
+        name: String,
+      },
+    ],
   },
   { timestamps: true }
 );

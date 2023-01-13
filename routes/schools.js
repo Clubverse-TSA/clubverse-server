@@ -225,4 +225,99 @@ router.post("/upload-user-db", (req, res) => {
   });
 });
 
+router.get("/get-clubs", (req, res) => {
+  const { userId } = req.query;
+  User.findOne({ _id: userId }, (err, user) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+    Club.find({ school: user.school })
+      .populate("sponsors")
+      .exec((err, clubs) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        if (!clubs || clubs.length === 0) {
+          return res.json({
+            success: true,
+            myClubs: [],
+            otherClubs: [],
+          });
+        }
+
+        if (user.type === "student") {
+          const myClubs = [];
+          const otherClubs = [];
+
+          clubs.forEach((club) => {
+            if (club.members.includes(user._id)) {
+              myClubs.push(club);
+            } else {
+              if (!club.pending) {
+                otherClubs.push(club);
+              }
+            }
+          });
+
+          return res.json({
+            success: true,
+            myClubs,
+            otherClubs,
+          });
+        } else if (user.type === "sponsor") {
+          const myClubs = [];
+          const otherClubs = [];
+
+          clubs.forEach((club) => {
+            if (club.sponsors.includes(user._id)) {
+              myClubs.push(club);
+            } else {
+              if (!club.pending) {
+                otherClubs.push(club);
+              }
+            }
+          });
+
+          return res.json({
+            success: true,
+            myClubs,
+            otherClubs,
+          });
+        } else if (user.type === "admin") {
+          const myClubs = []; //(all)
+          const pendingClubs = []; //(pending)
+
+          clubs.forEach((club) => {
+            if (club.pending) {
+              myClubs.push(pendingClubs);
+            } else {
+              if (!club.pending) {
+                otherClubs.push(club);
+              }
+            }
+          });
+
+          return res.json({
+            success: true,
+            myClubs,
+            otherClubs,
+          });
+        }
+      });
+  });
+});
 module.exports = router;
