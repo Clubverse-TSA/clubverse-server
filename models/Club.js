@@ -72,8 +72,8 @@ const ClubSchema = new mongoose.Schema(
     },
     tags: [
       {
-        color: String,
-        name: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tag",
       },
     ],
   },

@@ -8,8 +8,9 @@ const User = require("../models/User");
 const School = require("../models/School");
 const Club = require("../models/Club");
 const Meeting = require("../models/Meeting");
-const UserSession = require("../models/UserSession");
 const Announcement = require("../models/Announcement");
+const Tag = require("../models/Tag");
+const UserSession = require("../models/UserSession");
 
 router.get("/", (req, res) => {
   return res.json({
@@ -1139,8 +1140,6 @@ router.post("/announcements/new", (req, res) => {
       if (date) newAnnouncement.dateReminder = date;
       if (image) newAnnouncement.image = image;
 
-      club.tags.push(...tags);
-
       newAnnouncement.save((err, announcement) => {
         if (err) {
           return res.json({
@@ -1211,6 +1210,7 @@ router.post("/announcements/edit", (req, res) => {
       }
 
       announcement.message = message;
+      // tags should be an array of id's from frontend by default
       announcement.tags = tags;
       announcement.dateReminder = date;
       announcement.image = image;
@@ -1312,6 +1312,263 @@ router.post("/announcements/delete", (req, res) => {
               success: true,
               club: club1,
             });
+          });
+        });
+      });
+    });
+  });
+});
+
+router.post("/tags/new", (req, res) => {
+  const { clubId, userId, name, color } = req.body;
+
+  Club.findOne({ _id: clubId }, (err, club) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!club) {
+      return res.json({
+        success: false,
+        message: "Club doesn't exist",
+      });
+    }
+
+    User.findOne({ _id: userId }, (err, user) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!user) {
+        return res.json({
+          success: false,
+          message: "User doesn't exist",
+        });
+      }
+
+      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+        const member = club.members.find((member) => member.user === userId);
+        if (!member || member.role !== "officer") {
+          return res.json({
+            success: false,
+            message: "Not authorized",
+          });
+        }
+      }
+
+      const newTag = new Tag();
+      newTag.club = clubId;
+      newTag.name = name;
+      newTag.color = color;
+
+      newTag.save((err, tag) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        club.tags.push(tag._id);
+        club.save((err, club) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
+
+          return res.json({
+            success: true,
+            message: "Tag created",
+            club,
+            tag,
+          });
+        });
+      });
+    });
+  });
+});
+
+router.post("/tags/edit", (req, res) => {
+  const { tagId, userId, name, color } = req.body;
+
+  Tag.findOne({ _id: tagId }, (err, tag) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!tag) {
+      return res.json({
+        success: false,
+        message: "Tag doesn't exist",
+      });
+    }
+
+    Club.findOne({ _id: tag.club }, (err, club) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!club) {
+        return res.json({
+          success: false,
+          message: "Club doesn't exist",
+        });
+      }
+
+      User.findOne({ _id: userId }, (err, user) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        if (!user) {
+          return res.json({
+            success: false,
+            message: "User doesn't exist",
+          });
+        }
+
+        if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+          const member = club.members.find((member) => member.user === userId);
+          if (!member || member.role !== "officer") {
+            return res.json({
+              success: false,
+              message: "Not authorized",
+            });
+          }
+        }
+
+        tag.name = name;
+        tag.color = color;
+
+        tag.save((err, tag) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
+
+          return res.json({
+            success: true,
+            message: "Tag edited",
+            tag,
+          });
+        });
+      });
+    });
+  });
+});
+
+router.post("/tags/delete", (req, res) => {
+  const { tagId, userId } = req.body;
+
+  Tag.findOne({ _id: tagId }, (err, tag) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!tag) {
+      return res.json({
+        success: false,
+        message: "Tag doesn't exist",
+      });
+    }
+
+    Club.findOne({ _id: tag.club }, (err, club) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!club) {
+        return res.json({
+          success: false,
+          message: "Club doesn't exist",
+        });
+      }
+
+      User.findOne({ _id: userId }, (err, user) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        if (!user) {
+          return res.json({
+            success: false,
+            message: "User doesn't exist",
+          });
+        }
+
+        if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+          const member = club.members.find((member) => member.user === userId);
+          if (!member || member.role !== "officer") {
+            return res.json({
+              success: false,
+              message: "Not authorized",
+            });
+          }
+        }
+
+        Tag.deleteOne({ _id: tagId }, (err) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
+
+          club.tags = club.tags.filter((tag) => tag !== tagId);
+          club.save((err, club) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            Announcement.updateMany(
+              { club: club._id },
+              { $pull: { tags: tagId } },
+              (err) => {
+                if (err) {
+                  return res.json({
+                    success: false,
+                    message: "Error: Server Error",
+                  });
+                }
+
+                return res.json({
+                  success: true,
+                  message: "Tag deleted",
+                  club,
+                });
+              }
+            );
           });
         });
       });
