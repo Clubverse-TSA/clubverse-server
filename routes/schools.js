@@ -46,7 +46,7 @@ router.post("/register", (req, res) => {
       if (school) {
         return res.json({
           success: false,
-          message: "School link already taken",
+          message: "School name taken",
         });
       }
 
@@ -265,10 +265,10 @@ router.get("/get-clubs", (req, res) => {
 
           clubs.forEach((club) => {
             const isMember = club.members.find(
-              (member) => member.user == userId
+              (member) => member.user.toString() == userId.toString()
             );
 
-            if (isMember) {
+            if (isMember && !club.pending) {
               myClubs.push(club);
             } else {
               if (!club.pending) {
@@ -287,7 +287,12 @@ router.get("/get-clubs", (req, res) => {
           const otherClubs = [];
 
           clubs.forEach((club) => {
-            if (club.sponsors.includes(user._id)) {
+            const findSponsor = club.sponsors.find(
+              (sponsor) => sponsor._id.toString() == user._id.toString()
+            );
+            const index = club.sponsors.indexOf(findSponsor);
+
+            if (index !== -1 && !club.pending) {
               myClubs.push(club);
             } else {
               // if (!club.pending) {
@@ -319,7 +324,7 @@ router.get("/get-clubs", (req, res) => {
           return res.json({
             success: true,
             allClubs,
-            otherClubs,
+            pendingClubs,
           });
         }
       });

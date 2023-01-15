@@ -148,7 +148,7 @@ router.post("/delete", (req, res) => {
       });
     }
 
-    if (user.type === "admin") {
+    if (user.type === "admin" || userId == deleteId) {
       User.findOne({ _id: deleteId }, (err, deleteThis) => {
         if (err) {
           return res.json({
@@ -164,6 +164,13 @@ router.post("/delete", (req, res) => {
           });
         }
 
+        if (deleteThis.type === "admin") {
+          return res.json({
+            success: false,
+            message: "You can't delete an admin account",
+          });
+        }
+
         User.deleteOne({ _id: deleteThis._id }, (err) => {
           if (err) {
             return res.json({
@@ -172,11 +179,100 @@ router.post("/delete", (req, res) => {
             });
           }
 
-          // remove from school
+          School.findOne({ _id: user.school }, (err, school) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
 
-          return res.json({
-            success: true,
-            message: "User deleted",
+            if (!school) {
+              return res.json({
+                success: false,
+                message: "School doesn't exist",
+              });
+            }
+
+            if (school.sponsors.includes(deleteThis._id)) {
+              school.sponsors.splice(
+                school.sponsors.indexOf(deleteThis._id),
+                1
+              );
+            } else {
+              school.students.splice(
+                school.students.indexOf(deleteThis._id),
+                1
+              );
+            }
+
+            school.save((err, school) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
+
+              Club.find({ _id: { $in: deleteThis.clubs } }, (err, clubs) => {
+                if (err) {
+                  return res.json({
+                    success: false,
+                    message: "Error: Server Error",
+                  });
+                }
+
+                let promises = [];
+
+                promises = clubs.map((club) => {
+                  const found = club.members.find(
+                    (member) =>
+                      member.user.toString() == deleteThis._id.toString()
+                  );
+
+                  if (found) {
+                    club.members.splice(club.members.indexOf(found), 1);
+                  } else {
+                    if (
+                      club.sponsors.length === 1 &&
+                      club.sponsors.includes(deleteThis._id)
+                    ) {
+                      // delete club by calling club delete route??
+                    } else if (club.sponsors.includes(deleteThis._id)) {
+                      club.sponsors.splice(
+                        club.sponsors.indexOf(deleteThis._id),
+                        1
+                      );
+                    }
+                  }
+
+                  const foundDues = club.dues.find(
+                    (dues) => dues.user.toString() == deleteThis._id.toString()
+                  );
+                  const foundDuesIndex = club.dues.indexOf(foundDues);
+
+                  if (foundDuesIndex > -1) {
+                    club.dues.splice(foundDuesIndex, 1);
+                  }
+
+                  return club.save();
+                });
+
+                Promise.all(promises)
+                  .then((clubs) => {
+                    return res.json({
+                      success: true,
+                      message: `${deleteThis.firstName} murdered`,
+                    });
+                  })
+                  .catch((err) => {
+                    return res.json({
+                      success: false,
+                      message: "server error",
+                    });
+                  });
+              });
+            });
           });
         });
       });
