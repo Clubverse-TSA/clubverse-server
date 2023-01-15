@@ -98,20 +98,23 @@ router.get("/verify", (req, res) => {
         message: "Error: Server Error",
       });
     } else {
-      User.findOne({ _id: sessions[0].user }, (err, user) => {
-        if (err) {
-          return res.json({
-            success: false,
-            message: "Error: Server Error",
-          });
-        }
+      User.findOne({ _id: sessions[0].user })
+        .populate("school")
+        .populate("clubs")
+        .exec((err, user) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
 
-        return res.json({
-          success: true,
-          message: "valid",
-          user,
+          return res.json({
+            success: true,
+            message: "valid",
+            user,
+          });
         });
-      });
     }
   });
 });
