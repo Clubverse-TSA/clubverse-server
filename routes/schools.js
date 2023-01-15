@@ -146,8 +146,7 @@ router.post("/upload-user-db", (req, res) => {
       users = userJSON.map(async (user) => {
         const { firstName, lastName, id, email, password, grade } = user;
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
         const newUser = new User({
           firstName,
@@ -184,8 +183,7 @@ router.post("/upload-user-db", (req, res) => {
       users = userJSON.map(async (user) => {
         const { firstName, lastName, id, email, password } = user;
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
         const newUser = new User({
           firstName,

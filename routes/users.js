@@ -35,7 +35,7 @@ router.post("/login/:id", (req, res) => {
       });
     }
 
-    User.findOne({ school: school._id, username }, (err, user) => {
+    User.findOne({ school: schoolID, username }, (err, user) => {
       if (err) {
         return res.json({
           success: false,
@@ -67,13 +67,11 @@ router.post("/login/:id", (req, res) => {
           });
         }
 
-        User.findOne({ _id: doc.userId }, (err, user1) => {
-          return res.json({
-            success: true,
-            message: "Authenticated",
-            token: doc._id,
-            user: user1,
-          });
+        return res.json({
+          success: true,
+          message: "Authenticated",
+          token: doc._id,
+          user: user,
         });
       });
     });
@@ -173,6 +171,8 @@ router.post("/delete", (req, res) => {
               message: "Error: Server Error",
             });
           }
+
+          // remove from school
 
           return res.json({
             success: true,

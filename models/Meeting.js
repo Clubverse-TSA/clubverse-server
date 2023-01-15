@@ -15,7 +15,7 @@ const MeetingSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ["present", "neutral", "absent"],
+          // enum: ["present", "neutral", "absent"],
         },
       },
     ],

@@ -59,7 +59,7 @@ router.post("/create", (req, res) => {
         });
       }
 
-      user.club.push(club._id);
+      user.clubs.push(club._id);
       user.save((err, user1) => {
         if (err) {
           return res.json({
@@ -381,7 +381,7 @@ router.post("/updateDues", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         const member = club.members.find((member) => member.user == userId);
         if (!member || member.role !== "officer") {
           return res.json({
@@ -508,7 +508,7 @@ router.post("/members/approveDeny", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         return res.json({
           success: false,
           message: "Not authorized",
@@ -530,7 +530,7 @@ router.post("/members/approveDeny", (req, res) => {
           });
         }
 
-        if (decision === "accept") {
+        if (decision) {
           club.members.push({
             user: user1._id,
             role: "member",
@@ -551,10 +551,20 @@ router.post("/members/approveDeny", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "Request accepted",
-            club,
+          user1.save((err, user2) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "Request accepted/declined",
+              club,
+              user: user2,
+            });
           });
         });
       });
@@ -680,7 +690,7 @@ router.post("/members/remove", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         return res.json({
           success: false,
           message: "Not authorized",
@@ -777,7 +787,7 @@ router.post("/members/promoteDemote", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         return res.json({
           success: false,
           message: "Not authorized",
@@ -875,7 +885,7 @@ router.post("/meetings/new", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         const member = club.members.find((member) => member.user == userId);
         if (!member || member.role !== "officer") {
           return res.json({
@@ -974,7 +984,11 @@ router.post("/meetings/edit", (req, res) => {
         });
       }
 
-      const member = meeting.attendance.find((member) => member.user == userId);
+      const member = meeting.attendance.find(
+        (member) => member.user == studentId
+      );
+
+      // const memberIndex = meeting.members.indexOf();
 
       if (!member) {
         return res.json({
@@ -984,7 +998,7 @@ router.post("/meetings/edit", (req, res) => {
       }
 
       member.status = status;
-      member.save((err, member) => {
+      meeting.save((err, member) => {
         if (err) {
           return res.json({
             success: false,
@@ -1036,7 +1050,7 @@ router.post("/meetings/delete", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         const member = club.members.find((member) => member.user == userId);
         if (!member || member.role !== "officer") {
           return res.json({
@@ -1060,8 +1074,8 @@ router.post("/meetings/delete", (req, res) => {
             message: "Meeting doesn't exist",
           });
         }
-
-        meeting.remove((err, meeting) => {
+        //Fix remove
+        Meeting.deleteOne({ _id: meetingId }, (err) => {
           if (err) {
             return res.json({
               success: false,
@@ -1069,9 +1083,11 @@ router.post("/meetings/delete", (req, res) => {
             });
           }
 
-          club.meetings = club.meetings.filter(
-            (meeting) => meeting._id !== meetingId
+          let meeting = club.meetings.find(
+            (meeting) => meeting._id == meetingId
           );
+
+          club.meetings.splice(club.meetings.indexOf(meeting), 1);
           club.save((err, club) => {
             if (err) {
               return res.json({
@@ -1125,7 +1141,7 @@ router.post("/announcements/new", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         const member = club.members.find((member) => member.user == userId);
         if (!member || member.role !== "officer") {
           return res.json({
@@ -1356,7 +1372,7 @@ router.post("/tags/new", (req, res) => {
         });
       }
 
-      if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+      if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
         const member = club.members.find((member) => member.user == userId);
         if (!member || member.role !== "officer") {
           return res.json({
@@ -1448,7 +1464,7 @@ router.post("/tags/edit", (req, res) => {
           });
         }
 
-        if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+        if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
           const member = club.members.find((member) => member.user == userId);
           if (!member || member.role !== "officer") {
             return res.json({
@@ -1528,7 +1544,7 @@ router.post("/tags/delete", (req, res) => {
           });
         }
 
-        if (user.type !== "admin" || club.sponsors.indexOf(user._id) === -1) {
+        if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
           const member = club.members.find((member) => member.user == userId);
           if (!member || member.role !== "officer") {
             return res.json({
