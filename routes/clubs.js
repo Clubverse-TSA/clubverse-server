@@ -349,18 +349,6 @@ router.post("/delete", (req, res) => {
                     );
                   }
                 );
-
-                // let users = [];
-
-                // users = allUsers.filter((user1) =>
-                //   user1.clubs.includes(club._id)
-                // );
-                // users = users.map((user1) => {
-                //   user1.clubs.splice(user1.clubs.indexOf(club._id), 1);
-                //   return user.save();
-                // });
-
-                // Promise.all(users).then((response) => {});
               });
             });
           });
@@ -1112,8 +1100,6 @@ router.post("/meetings/edit", (req, res) => {
         (member) => member.user.toString() == studentId.toString()
       );
 
-      // const memberIndex = meeting.members.indexOf();
-
       if (!member) {
         return res.json({
           success: false,
@@ -1200,7 +1186,7 @@ router.post("/meetings/delete", (req, res) => {
             message: "Meeting doesn't exist",
           });
         }
-        //Fix remove
+
         Meeting.deleteOne({ _id: meetingId }, (err) => {
           if (err) {
             return res.json({

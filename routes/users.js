@@ -7,6 +7,9 @@ const keys = require("../config/keys");
 const User = require("../models/User");
 const School = require("../models/School");
 const Club = require("../models/Club");
+const Meeting = require("../models/Meeting");
+const Announcement = require("../models/Announcement");
+const Tag = require("../models/Tag");
 const UserSession = require("../models/UserSession");
 
 router.get("/", (req, res) => {
@@ -237,7 +240,147 @@ router.post("/delete", (req, res) => {
                       club.sponsors.length === 1 &&
                       club.sponsors.includes(deleteThis._id)
                     ) {
-                      // delete club by calling club delete route??
+                      const clubId = club._id.toString();
+                      const deleteUser = deleteThis._id.toString();
+
+                      // Club Delete
+                      Club.findOne({ _id: clubId }, (err, club) => {
+                        if (err) {
+                          return res.json({
+                            success: false,
+                            message: "Error: Server Error",
+                          });
+                        }
+
+                        if (!club) {
+                          return res.json({
+                            success: false,
+                            message: "Club doesn't exist",
+                          });
+                        }
+
+                        // User.findOne({ _id: deleteUser }, (err, user) => {
+                        // if (err) {
+                        //   return res.json({
+                        //     success: false,
+                        //     message: "Error: Server Error",
+                        //   });
+                        // }
+
+                        // if (!user) {
+                        //   return res.json({
+                        //     success: false,
+                        //     message: "User doesn't exist",
+                        //   });
+                        // }
+
+                        if (
+                          deleteThis.type !== "admin" &&
+                          club.sponsors.indexOf(deleteThis._id) === -1
+                        ) {
+                          return res.json({
+                            success: false,
+                            message: "Not authorized",
+                          });
+                        }
+
+                        Club.deleteOne({ _id: clubId }, (err) => {
+                          if (err) {
+                            return res.json({
+                              success: false,
+                              message: "Error: Server Error",
+                            });
+                          }
+
+                          School.findOne(
+                            { _id: club.school },
+                            (err, school) => {
+                              if (err) {
+                                return res.json({
+                                  success: false,
+                                  message: "Error: Server Error",
+                                });
+                              }
+
+                              if (school) {
+                                const index = school.clubs.indexOf(clubId);
+                                if (index !== -1) {
+                                  school.clubs.splice(index, 1);
+                                }
+                                school.save((err, school) => {
+                                  if (err) {
+                                    return res.json({
+                                      success: false,
+                                      message: "Error: Server Error",
+                                    });
+                                  }
+                                });
+                              }
+
+                              Tag.deleteMany(
+                                { _id: { $in: club.tags } },
+                                (err) => {
+                                  if (err) {
+                                    return res.json({
+                                      success: false,
+                                      message: "Error: Server Error",
+                                    });
+                                  }
+
+                                  User.updateMany(
+                                    {},
+                                    { $pull: { clubs: clubId } },
+                                    (err) => {
+                                      if (err) {
+                                        return res.json({
+                                          success: false,
+                                          message: "Error: Server Error",
+                                        });
+                                      }
+
+                                      User.find({}, (err, allUsers) => {
+                                        if (err) {
+                                          return res.json({
+                                            success: false,
+                                            message: "Error: Server Error",
+                                          });
+                                        }
+
+                                        Announcement.deleteMany(
+                                          {
+                                            _id: { $in: club.announcements },
+                                          },
+                                          (err) => {
+                                            if (err) {
+                                              return res.json({
+                                                success: false,
+                                                message: "Error: Server Error",
+                                              });
+                                            }
+
+                                            Meeting.deleteMany(
+                                              { _id: { $in: club.meetings } },
+                                              (err) => {
+                                                if (err) {
+                                                  return res.json({
+                                                    success: false,
+                                                    message:
+                                                      "Error: Server Error",
+                                                  });
+                                                }
+                                              }
+                                            );
+                                          }
+                                        );
+                                      });
+                                    }
+                                  );
+                                }
+                              );
+                            }
+                          );
+                        });
+                      });
                     } else if (club.sponsors.includes(deleteThis._id)) {
                       club.sponsors.splice(
                         club.sponsors.indexOf(deleteThis._id),

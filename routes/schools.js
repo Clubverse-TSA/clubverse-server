@@ -7,6 +7,9 @@ const keys = require("../config/keys");
 const User = require("../models/User");
 const School = require("../models/School");
 const Club = require("../models/Club");
+const Meeting = require("../models/Meeting");
+const Announcement = require("../models/Announcement");
+const Tag = require("../models/Tag");
 const UserSession = require("../models/UserSession");
 
 router.get("/", (req, res) => {
@@ -295,10 +298,7 @@ router.get("/get-clubs", (req, res) => {
             if (index !== -1 && !club.pending) {
               myClubs.push(club);
             } else {
-              // if (!club.pending) {
-              //   otherClubs.push(club);
-              // }
-              // Sponsors can only see their own clubs
+              // Sponsors should only see their own clubs
             }
           });
 
