@@ -129,6 +129,8 @@ router.post("/register", (req, res) => {
 
 router.post("/upload-user-db", (req, res) => {
   const { userJSON, dbType, schoolID } = req.body;
+  
+  console.log("HERE")
 
   School.findOne({ _id: schoolID }, (err, school) => {
     if (err) {
@@ -144,10 +146,13 @@ router.post("/upload-user-db", (req, res) => {
         message: "School not found",
       });
     }
+    
+    console.log("HERE 2")
 
     if (dbType === "student") {
       let users = [];
       users = userJSON.map(async (user) => {
+        console.log("HERE 3")
         const { firstName, lastName, id, email, password, grade } = user;
 
         const hashedPassword = bcrypt.hashSync(password, 10);
