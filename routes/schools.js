@@ -172,7 +172,7 @@ router.post("/upload-user-db", (req, res) => {
         return newUser.save();
       });
 
-      Promise.all(users).then((values) => {
+      Promise.resolve(users).then((values) => {
         console.log("HERE 4")
         school.students = values.map((user) => user._id);
         school.save((err, school) => {
