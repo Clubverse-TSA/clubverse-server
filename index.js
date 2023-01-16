@@ -16,7 +16,8 @@ const clubs = require("./routes/clubs");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors({
-    origin: '*'
+    origin: '*',
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
 }));
 
 const db = require("./config/keys").mongoURI;
