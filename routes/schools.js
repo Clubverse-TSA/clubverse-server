@@ -24,6 +24,7 @@ router.post("/register", (req, res) => {
   const link = name.replace(/\s/g, "").toLowerCase();
 
   User.findOne({ username }, (err, user) => {
+    console.log(user);
     if (err) {
       return res.json({
         success: false,
