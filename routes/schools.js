@@ -28,6 +28,7 @@ router.post("/register", (req, res) => {
       return res.json({
         success: false,
         message: "Error: Server Error 1",
+        error: err,
       });
     }
 
