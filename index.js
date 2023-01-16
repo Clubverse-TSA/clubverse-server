@@ -16,7 +16,7 @@ const clubs = require("./routes/clubs");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors({
-   origin: ['https://clubverse.web.app', 'https://clubverse.us']
+    origin: '*'
 }));
 
 const db = require("./config/keys").mongoURI;
