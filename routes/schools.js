@@ -27,7 +27,7 @@ router.post("/register", (req, res) => {
     if (err) {
       return res.json({
         success: false,
-        message: "Error: Server Error",
+        message: "Error: Server Error 1",
       });
     }
 
@@ -42,7 +42,7 @@ router.post("/register", (req, res) => {
       if (err) {
         return res.json({
           success: false,
-          message: "Error: Server error",
+          message: "Error: Server error 2",
         });
       }
 
@@ -64,7 +64,7 @@ router.post("/register", (req, res) => {
         if (err) {
           return res.json({
             success: false,
-            message: "Error: Server error",
+            message: "Error: Server error 3",
           });
         }
 
@@ -81,7 +81,7 @@ router.post("/register", (req, res) => {
           if (err) {
             return res.json({
               success: false,
-              message: "Error: Server Error",
+              message: "Error: Server Error 4",
             });
           }
 
@@ -89,7 +89,7 @@ router.post("/register", (req, res) => {
             if (err) {
               return res.json({
                 success: false,
-                message: "Error: Server Error",
+                message: "Error: Server Error 5",
               });
             }
 
@@ -98,7 +98,7 @@ router.post("/register", (req, res) => {
               if (err) {
                 return res.json({
                   success: false,
-                  message: "Error: Server Error",
+                  message: "Error: Server Error 6",
                 });
               }
 
@@ -107,7 +107,7 @@ router.post("/register", (req, res) => {
                 if (err) {
                   return res.json({
                     success: false,
-                    message: "Error: Server Error",
+                    message: "Error: Server Error 7",
                   });
                 }
 
