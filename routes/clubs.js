@@ -215,10 +215,27 @@ router.post("/approve", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "Approved",
-            club: club1,
+          School.findOne({ _id: club.school }, (err, school) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            if (!school) {
+              return res.json({
+                success: false,
+                message: "School not found",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "Approved",
+              club: club1,
+              school,
+            });
           });
         });
       }

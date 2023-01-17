@@ -309,26 +309,49 @@ router.get("/get-clubs", (req, res) => {
             otherClubs,
           });
         } else if (user.type === "admin") {
-          const allClubs = []; //(all)
-          const pendingClubs = []; //(pending)
+          const myClubs = []; //(all)
+          const otherClubs = []; //(pending)
 
           clubs.forEach((club) => {
             if (club.pending) {
-              pendingClubs.push(club);
+              otherClubs.push(club);
             } else {
               if (!club.pending) {
-                allClubs.push(club);
+                myClubs.push(club);
               }
             }
           });
 
           return res.json({
             success: true,
-            allClubs,
-            pendingClubs,
+            myClubs,
+            otherClubs,
           });
         }
       });
+  });
+});
+
+router.get("/get-schools", (req, res) => {
+  School.find({}, (err, schools) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!schools) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    return res.json({
+      success: true,
+      schools,
+    });
   });
 });
 
