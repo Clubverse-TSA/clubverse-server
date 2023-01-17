@@ -38,31 +38,10 @@ router.post("/login/:id", (req, res) => {
       });
     }
 
-    User.findOne({ school: schoolID, username }, (err, user) => {
-      if (err) {
-        return res.json({
-          success: false,
-          message: "Error: Server Error",
-        });
-      }
-
-      if (!user) {
-        return res.json({
-          success: false,
-          message: "Invalid username or password",
-        });
-      }
-
-      if (!user.validPassword(password)) {
-        return res.json({
-          success: false,
-          message: "Error: Invalid username or password",
-        });
-      }
-
-      const newUserSession = new UserSession();
-      newUserSession.user = user._id;
-      newUserSession.save((err, doc) => {
+    User.findOne({ school: schoolID, username })
+      .populate("school")
+      .populate("clubs")
+      .exec((err, user) => {
         if (err) {
           return res.json({
             success: false,
@@ -70,14 +49,38 @@ router.post("/login/:id", (req, res) => {
           });
         }
 
-        return res.json({
-          success: true,
-          message: "Authenticated",
-          token: doc._id,
-          user: user,
+        if (!user) {
+          return res.json({
+            success: false,
+            message: "Invalid username or password",
+          });
+        }
+
+        if (!user.validPassword(password)) {
+          return res.json({
+            success: false,
+            message: "Error: Invalid username or password",
+          });
+        }
+
+        const newUserSession = new UserSession();
+        newUserSession.user = user._id;
+        newUserSession.save((err, doc) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
+
+          return res.json({
+            success: true,
+            message: "Authenticated",
+            token: doc._id,
+            user: user,
+          });
         });
       });
-    });
   });
 });
 
