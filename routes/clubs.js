@@ -18,6 +18,84 @@ router.get("/", (req, res) => {
   });
 });
 
+router.get("/getClub", (req, res) => {
+  const { clubId } = req.query;
+
+  Club.findOne({ _id: clubId })
+    .populate("sponsors")
+    .populate({
+      path: "members",
+      populate: {
+        path: "user",
+      },
+    })
+    .populate({
+      path: "dues",
+      populate: {
+        path: "user",
+      },
+    })
+    .populate("requests")
+    .populate("school")
+    .populate({
+      path: "meetings",
+      populate: [
+        {
+          path: "attendance",
+          populate: {
+            path: "user",
+          },
+        },
+        {
+          path: "club",
+        },
+      ],
+    })
+    .populate({
+      path: "announcements",
+      populate: [
+        {
+          path: "club",
+        },
+        {
+          path: "user",
+        },
+        {
+          path: "tags",
+          populate: {
+            path: "user",
+          },
+        },
+      ],
+    })
+    .populate({
+      path: "tags",
+      populate: {
+        path: "user",
+      },
+    })
+    .exec((err, club) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!club) {
+        return res.json({
+          success: false,
+          message: "Club not found",
+        });
+      }
+
+      return res.json({
+        success: true,
+        club: club,
+      });
+    });
+});
+
 router.post("/create", (req, res) => {
   const { name, description, sponsorId, room } = req.body;
 
