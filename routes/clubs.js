@@ -565,7 +565,7 @@ router.post("/updateDues", (req, res) => {
       );
       if (update) {
         update.paid = paidStatus;
-        club.save((err, club) => {
+        club.save((err, clubSaved) => {
           if (err) {
             return res.json({
               success: false,
@@ -573,10 +573,19 @@ router.post("/updateDues", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "Dues updated",
-            club,
+          clubSaved.populate("dues.user", (err, clubPopulated) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "Dues updated",
+              club: clubPopulated,
+            });
           });
         });
       }
