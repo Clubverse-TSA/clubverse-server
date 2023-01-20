@@ -730,7 +730,7 @@ router.post("/members/approveDeny", (req, res) => {
           club.requests.splice(index, 1);
         }
 
-        club.save((err, club) => {
+        club.save((err, clubSaved) => {
           if (err) {
             return res.json({
               success: false,
@@ -746,12 +746,24 @@ router.post("/members/approveDeny", (req, res) => {
               });
             }
 
-            return res.json({
-              success: true,
-              message: "Request accepted/declined",
-              club,
-              user: user2,
-            });
+            clubSaved.populate(
+              "members.user requests dues.user",
+              (err, clubPopulated) => {
+                if (err) {
+                  return res.json({
+                    success: false,
+                    message: "Error: Server Error",
+                  });
+                }
+
+                return res.json({
+                  success: true,
+                  message: "Request accepted/declined",
+                  club: clubPopulated,
+                  user: user2,
+                });
+              }
+            );
           });
         });
       });
