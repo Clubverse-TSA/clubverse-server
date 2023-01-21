@@ -951,7 +951,7 @@ router.post("/members/remove", (req, res) => {
           user1.clubs.splice(index1, 1);
         }
 
-        club.save((err, club) => {
+        club.save((err, savedClub) => {
           if (err) {
             return res.json({
               success: false,
@@ -967,11 +967,20 @@ router.post("/members/remove", (req, res) => {
               });
             }
 
-            return res.json({
-              success: true,
-              message: "User removed from club",
-              club,
-              user1,
+            savedClub.populate("members.user", (err, club) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
+
+              return res.json({
+                success: true,
+                message: "User removed from club",
+                club,
+                user1,
+              });
             });
           });
         });
@@ -1059,7 +1068,7 @@ router.post("/members/promoteDemote", (req, res) => {
           member.role = "officer";
         }
 
-        club.save((err, club) => {
+        club.save((err, savedClub) => {
           if (err) {
             return res.json({
               success: false,
@@ -1067,10 +1076,19 @@ router.post("/members/promoteDemote", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "User promoted/demoted",
-            club,
+          savedClub.populate("members.user", (err, club) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "User promoted/demoted",
+              club,
+            });
           });
         });
       });
