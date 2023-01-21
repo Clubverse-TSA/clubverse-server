@@ -967,7 +967,7 @@ router.post("/members/remove", (req, res) => {
               });
             }
 
-            savedClub.populate("members.user", (err, club) => {
+            savedClub.populate("members.user dues.user", (err, club) => {
               if (err) {
                 return res.json({
                   success: false,
