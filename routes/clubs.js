@@ -1152,13 +1152,15 @@ router.post("/meetings/new", (req, res) => {
         }
 
         club.meetings.push(meeting._id);
-        club.save((err, club) => {
+        club.save((err, savedClub) => {
           if (err) {
             return res.json({
               success: false,
               message: "Error: Server Error",
             });
           }
+
+          savedClub.populate("meetings.attendance.user");
 
           return res.json({
             success: true,
