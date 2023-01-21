@@ -1160,14 +1160,36 @@ router.post("/meetings/new", (req, res) => {
             });
           }
 
-          savedClub.populate("meetings.attendance.user");
+          Club.findOne({ _id: clubId })
+            .populate({
+              path: "meetings",
+              populate: [
+                {
+                  path: "attendance",
+                  populate: {
+                    path: "user",
+                  },
+                },
+                {
+                  path: "club",
+                },
+              ],
+            })
+            .exec((err, club) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
 
-          return res.json({
-            success: true,
-            message: "Meeting created",
-            meeting,
-            club,
-          });
+              return res.json({
+                success: true,
+                message: "Meeting created",
+                meeting,
+                club,
+              });
+            });
         });
       });
     });
@@ -1234,12 +1256,37 @@ router.post("/meetings/edit", (req, res) => {
           });
         }
 
-        return res.json({
-          success: true,
-          message: "Attendance updated",
-          member,
-          meeting,
-        });
+        Club.findOne({ _id: meeting.club })
+          .populate({
+            path: "meetings",
+            populate: [
+              {
+                path: "attendance",
+                populate: {
+                  path: "user",
+                },
+              },
+              {
+                path: "club",
+              },
+            ],
+          })
+          .exec((err, club) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "Attendance updated",
+              member,
+              meeting,
+              club,
+            });
+          });
       });
     });
   });
