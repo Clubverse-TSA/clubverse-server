@@ -36,7 +36,12 @@ router.get("/getClub", (req, res) => {
       },
     })
     .populate("requests")
-    .populate("school")
+    .populate({
+      path: "school",
+      populate: {
+        path: "sponsors",
+      },
+    })
     .populate({
       path: "meetings",
       populate: [
