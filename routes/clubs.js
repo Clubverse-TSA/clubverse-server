@@ -639,7 +639,7 @@ router.post("/join", (req, res) => {
       }
 
       club.requests.push(user._id);
-      club.save((err, club) => {
+      club.save((err, savedClub) => {
         if (err) {
           return res.json({
             success: false,
@@ -647,10 +647,12 @@ router.post("/join", (req, res) => {
           });
         }
 
-        return res.json({
-          success: true,
-          message: "User requested to join",
-          club,
+        savedClub.populate("requests", (err, club) => {
+          return res.json({
+            success: true,
+            message: "User requested to join",
+            club,
+          });
         });
       });
     });
