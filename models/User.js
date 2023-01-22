@@ -27,6 +27,29 @@ const UserSchema = new mongoose.Schema(
         ref: "Club",
       },
     ],
+    notifications: [
+      {
+        club: {
+          type: mongoose.Schema.Types.ObjectId,
+        },
+        announcements: {
+          type: Boolean,
+          default: true,
+        },
+        attendanceUpdates: {
+          type: Boolean,
+          default: false,
+        },
+        duesUpdates: {
+          type: Boolean,
+          default: false,
+        },
+        clubChanges: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

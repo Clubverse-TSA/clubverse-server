@@ -149,6 +149,11 @@ router.post("/create", (req, res) => {
       }
 
       user.clubs.push(club._id);
+
+      user.notifications.push({
+        club: club._id,
+      });
+
       user.save((err, user1) => {
         if (err) {
           return res.json({
@@ -652,12 +657,10 @@ router.post("/join", (req, res) => {
           });
         }
 
-        savedClub.populate("requests", (err, club) => {
-          return res.json({
-            success: true,
-            message: "User requested to join",
-            club,
-          });
+        return res.json({
+          success: true,
+          message: "User requested to join",
+          club: savedClub,
         });
       });
     });
@@ -725,6 +728,9 @@ router.post("/members/approveDeny", (req, res) => {
             role: "member",
           });
           user1.clubs.push(clubId);
+          user1.notifications.push({
+            club: clubId,
+          });
 
           club.dues.push({
             user: user1._id,
@@ -845,6 +851,14 @@ router.post("/leave", (req, res) => {
         user.clubs.splice(index1, 1);
       }
 
+      const notif = user.notifications.find(
+        (notif) => notif.club.toString() == clubId.toString()
+      );
+      const index2 = user.notifications.indexOf(notif);
+      if (index2 !== -1) {
+        user.notifications.splice(index2, 1);
+      }
+
       club.save((err, club) => {
         if (err) {
           return res.json({
@@ -956,6 +970,14 @@ router.post("/members/remove", (req, res) => {
         const index1 = user1.clubs.indexOf(clubId);
         if (index1 !== -1) {
           user1.clubs.splice(index1, 1);
+        }
+
+        const notif = user1.notifications.find(
+          (notif) => notif.club.toString() == clubId.toString()
+        );
+        const index2 = user1.notifications.indexOf(notif);
+        if (index2 !== -1) {
+          user1.notifications.splice(index2, 1);
         }
 
         club.save((err, savedClub) => {
@@ -1988,6 +2010,10 @@ router.post("/sponsors/add", (req, res) => {
           paid: "neutral",
         });
 
+        sponsor.notifications.push({
+          club: clubId,
+        });
+
         sponsor.save((err, savedSponsor) => {
           if (err) {
             return res.json({
@@ -2105,6 +2131,12 @@ router.post("/sponsors/remove", (req, res) => {
           (dues) => dues.user.toString() === sponsorId
         );
         club.dues.splice(duesIndex, 1);
+
+        const notif = sponsor.notifications.find(
+          (notif) => notif.club.toString() === clubId
+        );
+        const notifIndex = sponsor.notifications.indexOf(notif);
+        sponsor.notifications.splice(notifIndex, 1);
 
         sponsor.save((err, savedSponsor) => {
           if (err) {
