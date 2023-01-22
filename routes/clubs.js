@@ -1912,4 +1912,107 @@ router.post("/tags/delete", (req, res) => {
   });
 });
 
+router.post("/sponsors/add", (req, res) => {
+  const { userId, sponsorId, clubId } = req.body;
+
+  User.findOne({ _id: userId }, (err, user) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "User doesn't exist",
+      });
+    }
+
+    if (user.type !== "admin" || user.type !== "sponsor") {
+      return res.json({
+        success: false,
+        message: "Not authorized",
+      });
+    }
+
+    Club.findOne({ _id: clubId }, (err, club) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!club) {
+        return res.json({
+          success: false,
+          message: "Club doesn't exist",
+        });
+      }
+
+      if (club.sponsors.indexOf(userId) === -1) {
+        return res.json({
+          success: false,
+          message: "Not authorized",
+        });
+      }
+
+      User.findOne({ _id: sponsorId }, (err, sponsor) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        if (!sponsor) {
+          return res.json({
+            success: false,
+            message: "Added sponsor doesn't exist",
+          });
+        }
+
+        if (club.sponsors.indexOf(sponsorId) !== -1) {
+          return res.json({
+            success: false,
+            message: "Sponsor already added",
+          });
+        }
+
+        club.sponsors.push(sponsorId);
+        sponsor.clubs.push(clubId);
+
+        sponsor.save((err, savedSponsor) => {
+          club.save((err, savedClub) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            savedClub.populate("sponsors", (err, club) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
+
+              return res.json({
+                success: true,
+                message: "Sponsor added",
+                club,
+                savedSponsor
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
 module.exports = router;
