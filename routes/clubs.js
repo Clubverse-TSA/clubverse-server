@@ -73,12 +73,7 @@ router.get("/getClub", (req, res) => {
         },
       ],
     })
-    .populate({
-      path: "tags",
-      populate: {
-        path: "user",
-      },
-    })
+    .populate("tags")
     .exec((err, club) => {
       if (err) {
         return res.json({
@@ -1728,7 +1723,7 @@ router.post("/tags/new", (req, res) => {
         }
 
         club.tags.push(tag._id);
-        club.save((err, club) => {
+        club.save((err, savedClub) => {
           if (err) {
             return res.json({
               success: false,
@@ -1736,11 +1731,20 @@ router.post("/tags/new", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "Tag created",
-            club,
-            tag,
+          savedClub.populate("tags", (err, club) => {
+            if (err) {
+              return res.json({
+                success: false,
+                message: "Error: Server Error",
+              });
+            }
+
+            return res.json({
+              success: true,
+              message: "Tag created",
+              club,
+              tag,
+            });
           });
         });
       });
