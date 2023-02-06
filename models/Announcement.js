@@ -21,7 +21,11 @@ const AnnouncementSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    image: String,
+    images: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true }
 );

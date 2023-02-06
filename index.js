@@ -12,8 +12,10 @@ const VERSION = require("./config/keys").version;
 const users = require("./routes/users");
 const schools = require("./routes/schools");
 const clubs = require("./routes/clubs");
+const images = require("./routes/images");
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json());
 app.use(
   cors({
@@ -31,6 +33,7 @@ mongoose
 app.use(`/api/users`, users);
 app.use(`/api/schools`, schools);
 app.use(`/api/clubs`, clubs);
+app.use(`/api/images`, images);
 
 app.get("/", (req, res) => res.send("Clubverse API v" + VERSION));
 

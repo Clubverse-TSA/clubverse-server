@@ -434,4 +434,132 @@ router.post("/delete", (req, res) => {
   });
 });
 
+router.post("/notifications/manage", (req, res) => {
+  const { updatedNotifications, userId, clubId } = req.body;
+
+  User.findOne({ _id: userId }, (err, user) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "User doesn't exist",
+      });
+    }
+
+    Club.findOne({ _id: clubId }, (err, club) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      if (!club) {
+        return res.json({
+          success: false,
+          message: "Club doesn't exist",
+        });
+      }
+
+      const foundUser = club.members.find(
+        (member) => member.user.toString() == userId.toString()
+      );
+
+      if (
+        !foundUser &&
+        !club.sponsors.includes(userId) &&
+        user.type !== "admin"
+      ) {
+        return res.json({
+          success: false,
+          message: "Not in club",
+        });
+      }
+
+      const foundNotifications = user.notifications.find(
+        (notification) => notification.club.toString() == clubId.toString()
+      );
+
+      const { announcements, attendanceUpdates, duesUpdates, clubChanges } =
+        updatedNotifications;
+
+      if (foundNotifications) {
+        foundNotifications.announcements = announcements;
+        foundNotifications.attendanceUpdates = attendanceUpdates;
+        foundNotifications.duesUpdates = duesUpdates;
+        foundNotifications.clubChanges = clubChanges;
+      } else {
+        user.notifications.push({
+          club: clubId,
+          announcements,
+          attendanceUpdates,
+          duesUpdates,
+          clubChanges,
+        });
+      }
+
+      user.save((err, user) => {
+        if (err) {
+          return res.json({
+            success: false,
+            message: "Error: Server Error",
+          });
+        }
+
+        return res.json({
+          success: true,
+          message: "Notifications updated",
+          user,
+        });
+      });
+    });
+  });
+});
+
+router.post("/settings", (req, res) => {
+  const { userId, updatedSettings } = req.body;
+
+  User.findOne({ _id: userId }, (err, user) => {
+    if (err) {
+      return res.json({
+        success: false,
+        message: "Error: Server Error",
+      });
+    }
+
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "User doesn't exist",
+      });
+    }
+
+    const { profilePic, email } = updatedSettings;
+
+    user.profilePic = profilePic;
+    user.email = email;
+
+    user.save((err, user) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: "Error: Server Error",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Settings updated",
+        user,
+      });
+    });
+  });
+});
+
 module.exports = router;

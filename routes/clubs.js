@@ -67,15 +67,13 @@ router.get("/getClub", (req, res) => {
         },
         {
           path: "tags",
-          populate: {
-            path: "user",
-          },
         },
       ],
     })
     .populate("tags")
     .exec((err, club) => {
       if (err) {
+        console.log(err);
         return res.json({
           success: false,
           message: "Error: Server Error",
@@ -1415,11 +1413,28 @@ router.post("/meetings/delete", (req, res) => {
               });
             }
 
-            return res.json({
-              success: true,
-              message: "Meeting deleted",
-              club,
-            });
+            Club.findOne({ _id: clubId })
+              .populate({
+                path: "meetings",
+                populate: [
+                  {
+                    path: "attendance",
+                    populate: {
+                      path: "user",
+                    },
+                  },
+                  {
+                    path: "club",
+                  },
+                ],
+              })
+              .exec((err, club) => {
+                return res.json({
+                  success: true,
+                  message: "Meeting deleted",
+                  club,
+                });
+              });
           });
         });
       });
@@ -1428,7 +1443,7 @@ router.post("/meetings/delete", (req, res) => {
 });
 
 router.post("/announcements/new", (req, res) => {
-  const { clubId, userId, message, tags, date, image } = req.body;
+  const { clubId, userId, message, tags, date, images } = req.body;
 
   Club.findOne({ _id: clubId }, (err, club) => {
     if (err) {
@@ -1479,7 +1494,7 @@ router.post("/announcements/new", (req, res) => {
 
       if (tags) newAnnouncement.tags = tags;
       if (date) newAnnouncement.dateReminder = date;
-      if (image) newAnnouncement.image = image;
+      if (images) newAnnouncement.images = images;
 
       newAnnouncement.save((err, announcement) => {
         if (err) {
@@ -1498,12 +1513,31 @@ router.post("/announcements/new", (req, res) => {
             });
           }
 
-          return res.json({
-            success: true,
-            message: "Announcement created",
+          Club.populate(
             club,
-            announcement,
-          });
+            {
+              path: "announcements",
+              populate: [
+                {
+                  path: "club",
+                },
+                {
+                  path: "user",
+                },
+                {
+                  path: "tags",
+                },
+              ],
+            },
+            (err, club) => {
+              return res.json({
+                success: true,
+                message: "Announcement created",
+                club,
+                announcement,
+              });
+            }
+          );
         });
       });
     });
@@ -1511,7 +1545,7 @@ router.post("/announcements/new", (req, res) => {
 });
 
 router.post("/announcements/edit", (req, res) => {
-  const { announcementId, userId, message, tags, date, image } = req.body;
+  const { announcementId, userId, message, tags, date, images } = req.body;
 
   Announcement.findOne({ _id: announcementId }, (err, announcement) => {
     if (err) {
@@ -1554,7 +1588,7 @@ router.post("/announcements/edit", (req, res) => {
       // tags should be an array of id's from frontend by default
       announcement.tags = tags;
       announcement.dateReminder = date;
-      announcement.image = image;
+      announcement.images = images;
 
       announcement.save((err, announcement) => {
         if (err) {
@@ -1924,11 +1958,46 @@ router.post("/tags/delete", (req, res) => {
                   });
                 }
 
-                return res.json({
-                  success: true,
-                  message: "Tag deleted",
+                Club.populate(
                   club,
-                });
+                  {
+                    path: "announcements",
+                    populate: [
+                      {
+                        path: "club",
+                      },
+                      {
+                        path: "user",
+                      },
+                      {
+                        path: "tags",
+                      },
+                    ],
+                  },
+                  (err, club) => {
+                    if (err) {
+                      return res.json({
+                        success: false,
+                        message: "Error: Server Error",
+                      });
+                    }
+
+                    club.populate("tags", (err, club) => {
+                      if (err) {
+                        return res.json({
+                          success: false,
+                          message: "Error: Server Error",
+                        });
+                      }
+
+                      return res.json({
+                        success: true,
+                        message: "Tag deleted",
+                        club,
+                      });
+                    });
+                  }
+                );
               }
             );
           });

@@ -128,7 +128,15 @@ router.post("/register", (req, res) => {
 });
 
 router.post("/upload-user-db", (req, res) => {
-  const { userJSON, dbType, schoolID } = req.body;
+  let { userJSON, dbType, schoolID } = req.body;
+
+  // convert password to String in USERJSON
+  userJSON = userJSON.map((user) => {
+    user.password = user.password.toString();
+    return user;
+  });
+
+  console.log(userJSON);
 
   School.findOne({ _id: schoolID }, (err, school) => {
     if (err) {
