@@ -26,6 +26,13 @@ const AnnouncementSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    files: [
+      {
+        name: String,
+        size: Number,
+        url: String,
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -1443,7 +1443,7 @@ router.post("/meetings/delete", (req, res) => {
 });
 
 router.post("/announcements/new", (req, res) => {
-  const { clubId, userId, message, tags, date, images } = req.body;
+  const { clubId, userId, message, tags, date, images, files } = req.body;
 
   Club.findOne({ _id: clubId }, (err, club) => {
     if (err) {
@@ -1495,6 +1495,7 @@ router.post("/announcements/new", (req, res) => {
       if (tags) newAnnouncement.tags = tags;
       if (date) newAnnouncement.dateReminder = date;
       if (images) newAnnouncement.images = images;
+      if (files) newAnnouncement.files = files;
 
       newAnnouncement.save((err, announcement) => {
         if (err) {
@@ -1545,7 +1546,8 @@ router.post("/announcements/new", (req, res) => {
 });
 
 router.post("/announcements/edit", (req, res) => {
-  const { announcementId, userId, message, tags, date, images } = req.body;
+  const { announcementId, userId, message, tags, date, images, files } =
+    req.body;
 
   Announcement.findOne({ _id: announcementId }, (err, announcement) => {
     if (err) {
@@ -1589,6 +1591,7 @@ router.post("/announcements/edit", (req, res) => {
       announcement.tags = tags;
       announcement.dateReminder = date;
       announcement.images = images;
+      announcement.files = files;
 
       announcement.save((err, announcement) => {
         if (err) {
