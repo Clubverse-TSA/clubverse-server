@@ -1591,15 +1591,15 @@ router.post("/announcements/new", (req, res) => {
                   );
 
                   if (notificationFound && notificationFound.announcements) {
-                    await sendEmail(
-                      userMap,
-                      `New Announcement | ${club.name} | ${user.firstName} ${user.lastName}`,
-                      `${
-                        announcement.message
-                      }\n\nView the announcement here: ${`https://clubverse.us/${club.school.link}/${club._id}`}\n\nUnsubscribe from this club's notifications here: ${`https://clubverse.us/${club.school.link}/${club._id}?current=4`}`
-                    ).then((res) => {
-                      console.log("Email sent");
-                    });
+                    // await sendEmail(
+                    //   userMap,
+                    //   `New Announcement | ${club.name} | ${user.firstName} ${user.lastName}`,
+                    //   `${
+                    //     announcement.message
+                    //   }\n\nView the announcement here: ${`https://clubverse.us/${club.school.link}/${club._id}`}\n\nUnsubscribe from this club's notifications here: ${`https://clubverse.us/${club.school.link}/${club._id}?current=4`}`
+                    // ).then((res) => {
+                    //   console.log("Email sent");
+                    // });
                   }
                 });
               });
