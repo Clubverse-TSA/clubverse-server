@@ -8,6 +8,10 @@ const TagSchema = new mongoose.Schema(
     },
     name: String,
     color: String,
+    default: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

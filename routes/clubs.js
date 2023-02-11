@@ -11,6 +11,7 @@ const Meeting = require("../models/Meeting");
 const Announcement = require("../models/Announcement");
 const Tag = require("../models/Tag");
 const UserSession = require("../models/UserSession");
+const { sendEmail } = require("../utils/util");
 
 router.get("/", (req, res) => {
   return res.json({
@@ -73,7 +74,6 @@ router.get("/getClub", (req, res) => {
     .populate("tags")
     .exec((err, club) => {
       if (err) {
-        console.log(err);
         return res.json({
           success: false,
           message: "Error: Server Error",
@@ -172,11 +172,30 @@ router.post("/create", (req, res) => {
               });
             }
 
-            return res.json({
-              success: true,
-              club: club,
-              school: school1,
-              user: user1,
+            const newTag = new Tag({
+              club: club._id,
+              name: "Public",
+              color: "#004e78",
+              default: true,
+            });
+
+            newTag.save((err, tag) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
+
+              club.tags.push(tag._id);
+              club.save((err, club1) => {
+                return res.json({
+                  success: true,
+                  club: club1,
+                  school: school1,
+                  user: user1,
+                });
+              });
             });
           });
         });
@@ -1254,13 +1273,6 @@ router.post("/meetings/edit", (req, res) => {
       });
     }
 
-    if (user.type !== "sponsor") {
-      return res.json({
-        success: false,
-        message: "Not authorized",
-      });
-    }
-
     Meeting.findOne({ _id: meetingId }, (err, meeting) => {
       if (err) {
         return res.json({
@@ -1276,19 +1288,7 @@ router.post("/meetings/edit", (req, res) => {
         });
       }
 
-      const member = meeting.attendance.find(
-        (member) => member.user.toString() == studentId.toString()
-      );
-
-      if (!member) {
-        return res.json({
-          success: false,
-          message: "User not in meeting",
-        });
-      }
-
-      member.status = status;
-      meeting.save((err, member) => {
+      Club.findOne({ _id: meeting.club }, (err, club) => {
         if (err) {
           return res.json({
             success: false,
@@ -1296,37 +1296,77 @@ router.post("/meetings/edit", (req, res) => {
           });
         }
 
-        Club.findOne({ _id: meeting.club })
-          .populate({
-            path: "meetings",
-            populate: [
-              {
-                path: "attendance",
-                populate: {
-                  path: "user",
-                },
-              },
-              {
-                path: "club",
-              },
-            ],
-          })
-          .exec((err, club) => {
-            if (err) {
-              return res.json({
-                success: false,
-                message: "Error: Server Error",
-              });
-            }
-
-            return res.json({
-              success: true,
-              message: "Attendance updated",
-              member,
-              meeting,
-              club,
-            });
+        if (!club) {
+          return res.json({
+            success: false,
+            message: "Club doesn't exist",
           });
+        }
+
+        if (user.type !== "admin" && club.sponsors.indexOf(user._id) === -1) {
+          const member = club.members.find(
+            (member) => member.user.toString() == userId.toString()
+          );
+          if (!member || member.role !== "officer") {
+            return res.json({
+              success: false,
+              message: "Not authorized",
+            });
+          }
+        }
+
+        const member = meeting.attendance.find(
+          (member) => member.user.toString() == studentId.toString()
+        );
+
+        if (!member) {
+          return res.json({
+            success: false,
+            message: "User not in meeting",
+          });
+        }
+
+        member.status = status;
+        meeting.save((err, member) => {
+          if (err) {
+            return res.json({
+              success: false,
+              message: "Error: Server Error",
+            });
+          }
+
+          Club.findOne({ _id: meeting.club })
+            .populate({
+              path: "meetings",
+              populate: [
+                {
+                  path: "attendance",
+                  populate: {
+                    path: "user",
+                  },
+                },
+                {
+                  path: "club",
+                },
+              ],
+            })
+            .exec((err, club) => {
+              if (err) {
+                return res.json({
+                  success: false,
+                  message: "Error: Server Error",
+                });
+              }
+
+              return res.json({
+                success: true,
+                message: "Attendance updated",
+                member,
+                meeting,
+                club,
+              });
+            });
+        });
       });
     });
   });
@@ -1516,26 +1556,52 @@ router.post("/announcements/new", (req, res) => {
 
           Club.populate(
             club,
-            {
-              path: "announcements",
-              populate: [
-                {
-                  path: "club",
-                },
-                {
-                  path: "user",
-                },
-                {
-                  path: "tags",
-                },
-              ],
-            },
+            [
+              {
+                path: "announcements",
+                populate: [
+                  {
+                    path: "club",
+                  },
+                  {
+                    path: "user",
+                  },
+                  {
+                    path: "tags",
+                  },
+                ],
+              },
+              {
+                path: "school",
+              },
+            ],
             (err, club) => {
-              return res.json({
-                success: true,
-                message: "Announcement created",
-                club,
-                announcement,
+              User.find({}, (err, users) => {
+                if (err) {
+                  return res.json({
+                    success: false,
+                    message: "Error: Server Error",
+                  });
+                }
+
+                users.forEach(async (userMap) => {
+                  const notificationFound = userMap.notifications.find(
+                    (notification) =>
+                      notification.club.toString() == clubId.toString()
+                  );
+
+                  if (notificationFound && notificationFound.announcements) {
+                    await sendEmail(
+                      userMap,
+                      `New Announcement | ${club.name} | ${user.firstName} ${user.lastName}`,
+                      `${
+                        announcement.message
+                      }\n\nView the announcement here: ${`https://clubverse.us/${club.school.link}/${club._id}`}\n\nUnsubscribe from this club's notifications here: ${`https://clubverse.us/${club.school.link}/${club._id}?current=4`}`
+                    ).then((res) => {
+                      console.log("Email sent");
+                    });
+                  }
+                });
               });
             }
           );
